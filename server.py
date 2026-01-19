@@ -16,8 +16,8 @@ class Server:
         self.server_socket.listen(2)
         self.board = board.Board()
         
-        self.clients = []  # Lista przechowująca gniazda klientów
-        self.lock = threading.Lock() # Blokada do synchronizacji dostępu do planszy
+        self.clients = []  
+        self.lock = threading.Lock()
         
         self.turn = "WILK" 
         
@@ -34,7 +34,6 @@ class Server:
         sys.exit(0)
 
     def broadcast(self, message):
-        """Wysyła wiadomość do wszystkich połączonych klientów."""
         data = (json.dumps(message) + "\n").encode('utf-8')
         for client in self.clients:
             try:
@@ -43,13 +42,10 @@ class Server:
                 self.clients.remove(client)
 
     def handle_client(self, client_socket, player_type):
-        """Wątek obsługujący pojedynczego gracza."""
         print(f"Połączono: {player_type}")
         
-        # Wyślij graczowi informację, kim jest
         init_msg = {"type": "INIT", "role": player_type, "board": self.board.grid}
         client_socket.sendall((json.dumps(init_msg) + "\n").encode('utf-8'))
-
 
         buffer = ""
         while True:
@@ -112,7 +108,6 @@ class Server:
             conn, addr = self.server_socket.accept()
             self.clients.append(conn)
             role = roles[len(self.clients)-1]
-            # Każdy gracz dostaje swój wątek
             thread = threading.Thread(target=self.handle_client, args=(conn, role))
             thread.start()
 

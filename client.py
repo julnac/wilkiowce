@@ -17,38 +17,18 @@ class Client:
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.font = pygame.font.SysFont('Arial', 32)
         
-        # Komunikacja
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
         self.msg_queue = queue.Queue()
         
-        # Stan gry
         self.board = []
-        self.role = None  # "WILK" lub "OWCE"
+        self.role = None
         self.turn = None
-        self.selected_sq = None # Zaznaczone pole (r, c)
+        self.selected_sq = None
         self.running = True
         self.winner = None
 
-        # Wątek sieciowy
         threading.Thread(target=self.receive_data, daemon=True).start()
-
-    # def receive_data(self):
-    #     """Nasłuchiwanie wiadomości z serwera."""
-    #     while self.running:
-    #         try:
-    #             data = self.socket.recv(4096).decode('utf-8')
-    #             if not data: break
-                
-    #             # Obsługa wielu JSONów w jednym pakiecie
-    #             messages = data.replace('}{', '}\n{').split('\n')
-    #             for msg_str in messages:
-    #                 msg = json.loads(msg_str)
-    #                 self.msg_queue.put(msg)
-    #         except:
-    #             break
-
-
 
     def receive_data(self):
         buffer = ""
@@ -68,13 +48,12 @@ class Client:
 
 
     def handle_messages(self):
-        """Przetwarzanie wiadomości w głównym wątku GUI."""
         while not self.msg_queue.empty():
             msg = self.msg_queue.get()
             if msg["type"] == "INIT":
                 self.role = msg["role"]
                 self.board = msg["board"]
-                self.turn = "WILK" # Wilk zawsze zaczyna
+                self.turn = "WILK" 
                 pygame.display.set_caption(f"Grasz jako: {self.role}")
             
             elif msg["type"] == "UPDATE":
@@ -91,17 +70,15 @@ class Client:
                     pygame.draw.rect(self.screen, BLACK, (c*SQUARE_SIZE, r*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
                 
                 piece = self.board[r][c] if self.board else 0
-                if piece == 1: # Owca
+                if piece == 1:
                     pygame.draw.circle(self.screen, (255, 255, 255), (c*SQUARE_SIZE+SQUARE_SIZE//2, r*SQUARE_SIZE+SQUARE_SIZE//2), 30)
-                elif piece == 2: # Wilk
+                elif piece == 2:
                     pygame.draw.circle(self.screen, RED, (c*SQUARE_SIZE+SQUARE_SIZE//2, r*SQUARE_SIZE+SQUARE_SIZE//2), 30)
 
-        # Podświetlenie zaznaczenia
         if self.selected_sq:
             r, c = self.selected_sq
             pygame.draw.rect(self.screen, (0, 255, 0), (c*SQUARE_SIZE, r*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE), 3)
 
-        # Wyświetlanie statusu
         status_txt = f"Twoja tura ({self.role})" if self.turn == self.role else "Czekaj na przeciwnika..."
         if self.winner: status_txt = f"KONIEC: Wygrały {self.winner}!"
         
@@ -123,7 +100,6 @@ class Client:
                         r, c = y // SQUARE_SIZE, x // SQUARE_SIZE
                         
                         if self.selected_sq:
-                            # Próba wykonania ruchu
                             move = {
                                 "type": "MOVE",
                                 "from": self.selected_sq,
@@ -132,7 +108,6 @@ class Client:
                             self.socket.sendall((json.dumps(move) + "\n").encode('utf-8'))
                             self.selected_sq = None
                         else:
-                            # Zaznaczanie tylko swoich pionków
                             piece = self.board[r][c]
                             if (self.role == "WILK" and piece == 2) or (self.role == "OWCE" and piece == 1):
                                 self.selected_sq = (r, c)
