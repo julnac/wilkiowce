@@ -69,7 +69,7 @@ class Server:
 
                     with self.lock:
                         if self.turn != player_type:
-                            client_socket.sendall(json.dumps({"type": "ERROR", "msg": "To nie jest Twoja tura!"}).encode('utf-8'))
+                            client_socket.sendall((json.dumps({"type": "ERROR", "msg": "To nie jest Twoja tura!"}) + "\n").encode('utf-8'))
                             continue
 
                         fr, fc = move["from"]
@@ -98,7 +98,7 @@ class Server:
                             self.broadcast(response)
                             print(f"Ruch poprawny: {player_type} z {fr,fc} na {tr,tc}. Tura: {self.turn}")
                         else:
-                            client_socket.sendall(json.dumps({"type": "ERROR", "msg": "Ruch niedozwolony lub nie Twoja tura!"}).encode('utf-8'))
+                            client_socket.sendall((json.dumps({"type": "ERROR", "msg": "Ruch niedozwolony lub nie Twoja tura!"}) + "\n").encode('utf-8'))
             
             except Exception as e:
                 print(f"Błąd gracza {player_type}: {e}")
