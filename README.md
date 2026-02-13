@@ -1,7 +1,7 @@
 # Dokumentacja - Gra Wilk i Owce
 
 ## Autor
-**Jan Kowalski**
+Julia Pozorska
 
 ## Sformułowanie zadania
 Implementacja sieciowej gry "Wilk i Owce" dla dwóch graczy z interfejsem graficznym. Gra wykorzystuje architekturę klient-serwer z komunikacją przez gniazda TCP.
